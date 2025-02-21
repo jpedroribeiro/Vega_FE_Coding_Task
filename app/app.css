@@ -7,9 +7,28 @@
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  @apply bg-gray-950;
 
-  @media (prefers-color-scheme: dark) {
+  @media screen {
     color-scheme: dark;
+  }
+}
+
+#login-form {
+
+  input {
+    transition: border-color 0.2s ease;
+  }
+
+  input+span {
+    transition: color 0.2s ease;
+  }
+
+  input:focus {
+    @apply border-white;
+  }
+
+  input:focus+span {
+    @apply text-white;
   }
 }
