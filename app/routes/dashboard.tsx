@@ -41,16 +41,18 @@ export async function clientLoader({
 
 export default function DashboardRoute({ loaderData }: any) {
   const ALL_TYPES = "all-assets";
+  const [selectedType, setSelectedType] = React.useState<string>(ALL_TYPES);
   const { email, visits, assetData } = loaderData;
   const [donutData, setDonutData] = React.useState<DonutChartData | null>(null);
   const availableAssetsTypes: string[] = [... new Set<string>(assetData.donut.map((asset: Asset) => asset.type))];
+  const [tableData, setTableData] = React.useState<any[]>([]);
 
   function handleDonutDataChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const assetLabel = event.target.value;
-    updateDonutData(assetLabel);
+    setSelectedType(assetLabel);
   }
 
-  function updateDonutData(type: string = ALL_TYPES) {
+  function updateDonutData() {
     // Create specific data containers based on user data (from API)
     const donut_1: Record<string, number> = {};
     assetData.donut.forEach((asset: Asset) => {
@@ -84,14 +86,13 @@ export default function DashboardRoute({ loaderData }: any) {
       ],
     };
 
-    console.log(type);
 
-    if (type === ALL_TYPES) {
+    if (selectedType === ALL_TYPES) {
       setDonutData(defaultDonut);
     } else {
       const donut_2 = {} as Record<string, number>;
       assetData.donut.forEach((asset: Asset) => {
-        if (asset.type === type) donut_2[asset.label] ? donut_2[asset.label] += asset.quantity * asset.price : donut_2[asset.label] = asset.quantity * asset.price;
+        if (asset.type === selectedType) donut_2[asset.label] ? donut_2[asset.label] += asset.quantity * asset.price : donut_2[asset.label] = asset.quantity * asset.price;
       });
 
       setDonutData({
@@ -108,9 +109,16 @@ export default function DashboardRoute({ loaderData }: any) {
     }
   }
 
+  function updateTableData() {
+    setTableData(
+      assetData.donut.filter((asset: Asset) => selectedType === ALL_TYPES || asset.type === selectedType)
+    )
+  }
+
   React.useEffect(() => {
     updateDonutData();
-  }, []);
+    updateTableData();
+  }, [selectedType]);
 
   return (
     <main className="flex flex-col items-center justify-center gap-4 m-[24px]">
@@ -131,11 +139,11 @@ export default function DashboardRoute({ loaderData }: any) {
         </nav>
       </div>
       <div className="flex flex-col items-center w-full rounded-3xl border p-6 border-gray-700 space-y-4 gap-4">
-        <h2 className="text-lg text-gray-200 font-semibold leading-6 text-center">Available assets</h2>
+        <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">❶ Available assets</h2>
         <div className="w-full max-w-[600px]">
           {donutData && <Doughnut data={donutData} />}
         </div>
-        <select className="w-full max-w-[600px] p-2 rounded-md border border-gray-700"
+        <select className="w-full max-w-[600px] p-2 rounded-md border border-gray-700 mb-20"
           onChange={handleDonutDataChange}
         >
           <optgroup label="All available assets">
@@ -149,6 +157,54 @@ export default function DashboardRoute({ loaderData }: any) {
             }
           </optgroup>
         </select>
+        <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">❷ Your Positions</h2>
+        <div className="w-full max-w-[600px]">
+          <table className="w-full border-t border-gray-700 text-white">
+            <thead>
+              <tr className="bg-gray-800 text-left">
+                <th className="p-3 border-b border-gray-700">Asset</th>
+                <th className="p-3 border-b border-gray-700">Type</th>
+                <th className="p-3 border-b border-gray-700">Quantity</th>
+                <th className="p-3 border-b border-gray-700">Price</th>
+                <th className="p-3 border-b border-gray-700">Total (USD$)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tableData && tableData.map((asset: Asset, index: number) => {
+                if ((index === tableData.length - 1) || (tableData[index + 1] !== null && tableData[index + 1].type !== asset.type)) {
+                  return <React.Fragment key={asset.type}>
+                    <tr className="border-b border-gray-700 hover:bg-gray-800">
+                      <td className="p-3">{asset.label}</td>
+                      <td className="p-3">{asset.type}</td>
+                      <td className="p-3">{asset.quantity}</td>
+                      <td className="p-3">{asset.price}</td>
+                      <td className="p-3">{(asset.quantity * asset.price).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
+                    </tr>
+                    <tr className="bg-gray-900 text-gray-300 font-semibold">
+                      <td colSpan={4} className="p-3 border-t border-gray-700">Total {asset.type}</td>
+                      <td className="p-3 border-t border-gray-700">{(tableData.reduce((acc: number, a: Asset) => a.type === asset.type ? acc + a.quantity * a.price : acc, 0)).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
+                    </tr>
+                    {selectedType === ALL_TYPES && index === tableData.length - 1 && <>
+                      <tr className="bg-gray-900 text-gray-300 font-bold">
+                        <td colSpan={4} className="p-3 border-t border-gray-700">Total all assets</td>
+                        <td className="p-3 border-t border-gray-700">{tableData.reduce((acc: number, a: Asset) => acc + a.quantity * a.price, 0).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
+                      </tr>
+                    </>}
+                  </React.Fragment>
+                }
+
+                return <tr key={asset.label} className="border-b border-gray-700 hover:bg-gray-800">
+                  <td className="p-3">{asset.label}</td>
+                  <td className="p-3">{asset.type}</td>
+                  <td className="p-3">{asset.quantity}</td>
+                  <td className="p-3">{asset.price}</td>
+                  <td className="p-3">{(asset.quantity * asset.price).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
+                </tr>
+              })}
+            </tbody>
+          </table>
+
+        </div>
       </div>
     </main>
   );
