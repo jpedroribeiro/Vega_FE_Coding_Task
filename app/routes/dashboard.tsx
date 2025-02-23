@@ -27,6 +27,8 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 export async function clientLoader({
   params,
 }: any) {
+  /* TODO credentials and API with more data? */
+
   // CREDENTIALS: load email and visits from localStorage
   const email = localStorage.getItem("email");
   const visits = localStorage.getItem("visits");
@@ -139,6 +141,9 @@ export default function DashboardRoute({ loaderData }: any) {
         </nav>
       </div>
       <div className="flex flex-col items-center w-full rounded-3xl border p-6 border-gray-700 space-y-4 gap-4">
+        {/*
+          Task 1: Donut chart with total assets by type
+        */}
         <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">❶ Available assets</h2>
         <div className="w-full max-w-[600px]">
           {donutData && <Doughnut data={donutData} />}
@@ -157,6 +162,10 @@ export default function DashboardRoute({ loaderData }: any) {
             }
           </optgroup>
         </select>
+
+        {/*
+          Task 2: Table with your positions
+        */}
         <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">❷ Your Positions</h2>
         <div className="w-full max-w-[600px]">
           <table className="w-full border-t border-gray-700 text-white">
@@ -203,8 +212,16 @@ export default function DashboardRoute({ loaderData }: any) {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/*
+          Task 3: Historical chart portfolio over time
+        */}
+        <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">❸ Portfolio Through Time</h2>
+        <div className="w-full max-w-[600px]">
 
         </div>
+
       </div>
     </main>
   );
