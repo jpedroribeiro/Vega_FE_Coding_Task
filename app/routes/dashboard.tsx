@@ -160,13 +160,13 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
   }, [selectedType, selectedDate]);
 
   return (
-    <main className="max-w-[600px] mx-auto flex flex-col items-center justify-center gap-4 m-[24px] relative">
+    <main className="max-w-2xl mx-auto flex flex-col items-center justify-center gap-4 m-8 mt-4 relative p-4">
       <div className="w-full sticky top-0 left-0 right-0 bg-gray-950/90 pb-4">
         <header className="flex flex-col items-center gap-9">
           <img
             src={logo}
             alt="VEGA"
-            className="block"
+            className="block mb-4"
             width={100}
             height={100}
           />
@@ -177,7 +177,7 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
           </nav>
         </div>
         <div className="w-full flex gap-4 justify-between">
-          <select className="flex-1 basis-1/2 p-2 rounded-md border border-gray-700"
+          <select className="flex-1 basis-1/2 p-2 pl-0 sm:pl-4 rounded-md border border-gray-700"
             onChange={handleDonutDataChange}
           >
             <optgroup label={pageCopy.all_assets}>
@@ -192,7 +192,7 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
             </optgroup>
           </select>
 
-          <select className="flex-1 basis-1/2 p-2 rounded-md border border-gray-700"
+          <select className="flex-1 basis-1/2 p-2 pl-0 sm:pl-4 rounded-md border border-gray-700"
             onChange={handleDateChange}
           >
             {[...new Set(assetData.donutAndHistoricalData
@@ -209,7 +209,7 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
           Task 1: Donut chart with total assets by type
         */}
         <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">{pageCopy.header_1}</h2>
-        <div className="w-full max-w-[600px] mb-20">
+        <div className="w-full max-w-2xl mb-20">
           {donutData ? <Doughnut data={donutData} /> : <LoadingSpinner />}
         </div>
 
@@ -217,7 +217,7 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
           Task 2: Table with your positions
         */}
         <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">{pageCopy.header_2}</h2>
-        <div className="w-full max-w-[600px]">
+        <div className="w-full max-w-2xl overflow-hidden overflow-x-auto">
           {tableData ? (
             <table className="w-full border-t border-gray-700 text-white mb-20">
               <thead>
@@ -270,8 +270,11 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
           Task 3: Historical chart portfolio over time
         */}
         <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">❸ Portfolio Through Time</h2>
-        <div className="w-full max-w-[600px] mb-10">
-          {lineData ? <Line data={lineData} /> : <LoadingSpinner />}
+        <div className="w-full max-w-2xl mb-10">
+          {lineData ? <Line data={lineData} options={{
+            responsive: true,
+            maintainAspectRatio: false,
+          }} /> : <LoadingSpinner />}
         </div>
 
       </div>

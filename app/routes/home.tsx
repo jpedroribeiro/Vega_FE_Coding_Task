@@ -25,9 +25,9 @@ export default function Home() {
           height={100}
         />
       </header>
-      <div className="max-w-[300px] w-full space-y-6 px-4">
+      <div className="max-w-xs w-full space-y-6 px-4">
 
-        <nav className="rounded-3xl border border-gray-200 p-6 dark:border-gray-700 space-y-4">
+        <nav className="rounded-3xl border border-gray-700 p-6 space-y-4">
           {loading ? (
             <div className="flex flex-col items-center">
               {/* Fake loading spinner just for visual fx */}
