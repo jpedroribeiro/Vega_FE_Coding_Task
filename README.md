@@ -38,7 +38,7 @@ npm run test
 
 ### Login
 
-The login screen takes any email and password combination. Login using the same email for a custom message.
+The login screen takes any email and password combination. Login using the same email for a custom message. This step is technically optional and you could go straight to `/dashboard` since there's no real authentication.
 
 ### Endpoints / API
 
