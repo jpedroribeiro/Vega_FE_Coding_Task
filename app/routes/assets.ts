@@ -1,81 +1,22 @@
 
 import type { Route } from "./+types/assets";
 
-// Hardcoded data for this exercise
-const commonAssets = [
-    {
-        id: 1,
-        name: "APPL",
-        type: "stock"
-    },
-    {
-        id: 2,
-        name: "GOOGL",
-        type: "stock"
-    },
-    {
-        id: 3,
-        name: "MSFT",
-        type: "stock"
-    },
-    {
-        id: 4,
-        name: "GBP",
-        type: "fiat"
-    },
-    {
-        id: 5,
-        name: "EUR",
-        type: "fiat"
-    },
-    {
-        id: 6,
-        name: "BRL",
-        type: "fiat"
-    },
-    {
-        id: 7,
-        name: "BTC",
-        type: "crypto"
-    },
-    {
-        id: 8,
-        name: "ETH",
-        type: "crypto"
-    },
-    {
-        id: 9,
-        name: "SOL",
-        type: "crypto"
-    }
-];
-
-
-
-
 
 export async function loader({ params }: Route.LoaderArgs) {
     console.log(params);
 
 
-    return { donut, donutAndHistoricalData };
+    return { donutAndHistoricalData };
 
 }
 
-
-
-/* (1) Data for donut chart and (2) table */
-const donut = [
-    { label: "GBP", quantity: 1905, price: 1.1, type: "fiat" },
-    { label: "EUR", quantity: 2055, price: 0.9, type: "fiat" },
-    { label: "BRL", quantity: 1155, price: 0.2, type: "fiat" },
-    { label: "BTC", quantity: 22, price: 1000, type: "crypto" },
-    { label: "ETH", quantity: 55, price: 500, type: "crypto" },
-    { label: "SOL", quantity: 11, price: 250, type: "crypto" },
-    { label: "APPL", quantity: 123, price: 333, type: "stock" },
-    { label: "GOOGL", quantity: 44, price: 555, type: "stock" },
-    { label: "MSFT", quantity: 12, price: 111, type: "stock" }
-]
+export interface Asset {
+    label: string;
+    quantity: number;
+    type: string;
+    price: number;
+    date: string;
+}
 
 const donutAndHistoricalData = [
     { label: "GBP", quantity: 1905, price: 1.1, type: "fiat", date: "2024-03-01" },

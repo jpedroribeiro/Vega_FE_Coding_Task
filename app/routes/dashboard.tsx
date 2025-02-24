@@ -8,27 +8,11 @@ import {
   PointElement,
   LineElement,
 } from 'chart.js';
+import type { ChartData } from 'chart.js';
 import { Doughnut, Line } from 'react-chartjs-2';
 import type { Credentials } from "./home";
-
-interface Asset {
-  label: string;
-  quantity: number;
-  type: string;
-  price: number;
-  date: string;
-}
-
-interface DonutChartData {
-  labels: string[];
-  datasets: {
-    label: string;
-    data: number[];
-    backgroundColor: string[];
-    borderColor: string[];
-    borderWidth: number;
-  }[];
-}
+import type { Asset } from "./assets";
+import { ALL_TYPES, COLOURS, pageCopy } from "../constants";
 
 ChartJS.register(
   ArcElement,
@@ -40,18 +24,7 @@ ChartJS.register(
   Legend
 );
 
-export async function clientLoader({
-  params,
-}: any) {
-  /* 
-    TODO
-      - filtering date and type could be optimised
-      - more types (charts etc)
-      - API with more data?
-  
-  */
-
-
+export async function clientLoader({ params }: any) {
   // CREDENTIALS: load email and visits from localStorage
   const credentials: string | null = localStorage.getItem("credentials");
   let email: string | undefined;
@@ -63,7 +36,6 @@ export async function clientLoader({
     visits = thisUser?.visits.toString();
   }
 
-
   // DONUT DATA: fetch data from /assets
   const assetResponse = await fetch("/assets");
   const assetData = await assetResponse.json();
@@ -71,28 +43,7 @@ export async function clientLoader({
   return { email, visits, assetData };
 }
 
-export default function DashboardRoute({ loaderData }: { loaderData: { email: string, visits: string, assetData: { donut: Asset[], donutAndHistoricalData: Asset[] } } }) {
-  // Hardcoded constants
-  const ALL_TYPES = "all-assets";
-  const COLOURS = {
-    backgroundColor: [
-      'rgba(0, 51, 153, 0.92)',
-      'rgba(0, 102, 204, 0.92)',
-      'rgba(0, 153, 255, 0.92)',
-      'rgba(30, 144, 255, 0.92)',
-      'rgba(70, 130, 180, 0.92)',
-      'rgba(173, 216, 230, 0.92)',
-    ],
-    borderColor: [
-      'rgba(100, 149, 237, 1)',
-      'rgba(135, 206, 250, 1)',
-      'rgba(173, 216, 230, 1)',
-      'rgba(176, 224, 230, 1)',
-      'rgba(202, 225, 255, 1)',
-      'rgba(224, 240, 255, 1)',
-    ],
-  }
-
+export default function DashboardRoute({ loaderData }: { loaderData: { email: string, visits: string, assetData: { donutAndHistoricalData: Asset[] } } }) {
   // API data
   const { email, visits, assetData } = loaderData;
 
@@ -101,10 +52,10 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
   const [selectedDate, setSelectedDate] = React.useState<string>(assetData.donutAndHistoricalData.sort((a: Asset, b: Asset) => new Date(b.date).getTime() - new Date(a.date).getTime())[0].date);
 
   // Dashboard data
-  const [donutData, setDonutData] = React.useState<DonutChartData | null>(null);
-  const availableAssetsTypes: string[] = [... new Set<string>(assetData.donut.map((asset: Asset) => asset.type))];
-  const [tableData, setTableData] = React.useState<any[]>([]);
-  const [lineData, setLineData] = React.useState<any>(null);
+  const availableAssetsTypes: string[] = [... new Set<string>(assetData.donutAndHistoricalData.map((asset: Asset) => asset.type))];
+  const [donutData, setDonutData] = React.useState<ChartData<"doughnut"> | null>(null);
+  const [tableData, setTableData] = React.useState<Asset[]>([]);
+  const [lineData, setLineData] = React.useState<ChartData<"line"> | null>(null);
 
   // Select box change functions
   function handleDonutDataChange(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -125,11 +76,11 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
       donut_1[asset.type] ? donut_1[asset.type] += asset.quantity * asset.price : donut_1[asset.type] = asset.quantity * asset.price;
     });
 
-    const defaultDonut: DonutChartData = {
+    const defaultDonut: ChartData<"doughnut"> = {
       labels: Object.keys(donut_1).map((type: string) => `${type[0].toUpperCase()}${type.slice(1)}`),
       datasets: [
         {
-          label: 'Total value in USD$',
+          label: pageCopy.donut_label,
           data: Object.values(donut_1),
           backgroundColor: COLOURS.backgroundColor,
           borderColor: COLOURS.borderColor,
@@ -137,7 +88,6 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
         },
       ],
     };
-
 
     if (selectedType === ALL_TYPES) {
       setDonutData(defaultDonut);
@@ -172,22 +122,11 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
 
 
   function updateLineData() {
-    const options = {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'top' as const,
-        }
-      },
-    };
-
     const filteredAssetsData: Asset[] = assetData.donutAndHistoricalData
       .filter((asset: Asset) => new Date(asset.date) <= new Date(selectedDate) && (asset.type === selectedType || selectedType === ALL_TYPES))
       .sort((a: Asset, b: Asset) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const labels = [...new Set(filteredAssetsData.map((asset: Asset) => asset.date))];
-    const assetTypes = [...new Set(filteredAssetsData.map((asset: Asset) => selectedType === ALL_TYPES ? asset.type : asset.label))];
-
-
+    const labels: string[] = [...new Set(filteredAssetsData.map((asset: Asset) => asset.date))];
+    const assetTypes: string[] = [...new Set(filteredAssetsData.map((asset: Asset) => selectedType === ALL_TYPES ? asset.type : asset.label))];
 
     const data = {
       labels,
@@ -195,6 +134,7 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
         ...assetTypes.map((type: string, index: number) => {
           const label = `${type[0].toUpperCase()}${type.slice(1)}`;
           const entryData: { [key: string]: number } = {};
+
           filteredAssetsData.filter((asset: Asset) => asset[selectedType === ALL_TYPES ? 'type' : 'label'] === type).forEach((asset: Asset) => {
             entryData[asset.date] = (entryData[asset.date] || 0) + (asset.price * asset.quantity);
           })
@@ -209,10 +149,7 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
       ],
     };
 
-    setLineData({
-      options,
-      data
-    });
+    setLineData(data);
   }
 
   React.useEffect(() => {
@@ -235,21 +172,19 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
         </header>
         <div className="space-y-6 px-4">
           <nav className="space-y-4">
-            <p className="leading-6 text-gray-200 text-center pb-2 text-sm mb-4">
-              Welcome back, <b>{email}</b>, you have visited the dashboard <b>{visits || 1}</b> time{parseInt(visits) === 1 ? '' : 's'}.
-            </p>
+            <p className="leading-6 text-gray-200 text-center pb-2 text-sm mb-4" dangerouslySetInnerHTML={{ __html: pageCopy.welcome_return_visit.replace('_EMAIL', email).replace('_VISITS', visits) }} />
           </nav>
         </div>
         <div className="w-full flex gap-4 justify-between">
           <select className="flex-1 basis-1/2 p-2 rounded-md border border-gray-700"
             onChange={handleDonutDataChange}
           >
-            <optgroup label="All available assets">
-              <option defaultChecked value={ALL_TYPES}>Total by type</option>
+            <optgroup label={pageCopy.all_assets}>
+              <option defaultChecked value={ALL_TYPES}>{pageCopy.total_by_type}</option>
             </optgroup>
-            <optgroup label="Individual asset type">
+            <optgroup label={pageCopy.individual_assets}>
               {
-                availableAssetsTypes.sort().map((label: string, index: number) => {
+                availableAssetsTypes.map((label: string, index: number) => {
                   return <option key={index} value={label}>{label.charAt(0).toUpperCase() + label.slice(1)}</option>
                 })
               }
@@ -272,60 +207,62 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
         {/*
           Task 1: Donut chart with total assets by type
         */}
-        <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">❶ Available assets</h2>
+        <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">{pageCopy.header_1}</h2>
         <div className="w-full max-w-[600px] mb-20">
-          {donutData && <Doughnut data={donutData} />}
+          {donutData ? <Doughnut data={donutData} /> : <LoadingSpinner />}
         </div>
 
         {/*
           Task 2: Table with your positions
         */}
-        <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">❷ Your Positions</h2>
+        <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">{pageCopy.header_2}</h2>
         <div className="w-full max-w-[600px]">
-          <table className="w-full border-t border-gray-700 text-white mb-20">
-            <thead>
-              <tr className="bg-gray-800 text-left">
-                <th className="p-3 border-b border-gray-700">Asset</th>
-                <th className="p-3 border-b border-gray-700">Type</th>
-                <th className="p-3 border-b border-gray-700">Quantity</th>
-                <th className="p-3 border-b border-gray-700">Price</th>
-                <th className="p-3 border-b border-gray-700">Total (USD$)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tableData && tableData.map((asset: Asset, index: number) => {
-                if ((index === tableData.length - 1) || (tableData[index + 1] !== null && tableData[index + 1].type !== asset.type)) {
-                  return <React.Fragment key={asset.type}>
-                    <tr className="border-b border-gray-700 hover:bg-gray-800">
-                      <td className="p-3">{asset.label}</td>
-                      <td className="p-3">{asset.type}</td>
-                      <td className="p-3">{asset.quantity}</td>
-                      <td className="p-3">{asset.price}</td>
-                      <td className="p-3">{(asset.quantity * asset.price).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
-                    </tr>
-                    <tr className="bg-gray-900 text-gray-300 font-semibold">
-                      <td colSpan={4} className="p-3 border-t border-gray-700">Total {asset.type}</td>
-                      <td className="p-3 border-t border-gray-700">{(tableData.reduce((acc: number, a: Asset) => a.type === asset.type ? acc + a.quantity * a.price : acc, 0)).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
-                    </tr>
-                    {selectedType === ALL_TYPES && index === tableData.length - 1 && <>
-                      <tr className="bg-gray-900 text-gray-300 font-bold">
-                        <td colSpan={4} className="p-3 border-t border-gray-700">Total all assets</td>
-                        <td className="p-3 border-t border-gray-700">{tableData.reduce((acc: number, a: Asset) => acc + a.quantity * a.price, 0).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
-                      </tr>
-                    </>}
-                  </React.Fragment>
-                }
-
-                return <tr key={asset.label} className="border-b border-gray-700 hover:bg-gray-800">
-                  <td className="p-3">{asset.label}</td>
-                  <td className="p-3">{asset.type}</td>
-                  <td className="p-3">{asset.quantity}</td>
-                  <td className="p-3">{asset.price}</td>
-                  <td className="p-3">{(asset.quantity * asset.price).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
+          {tableData ? (
+            <table className="w-full border-t border-gray-700 text-white mb-20">
+              <thead>
+                <tr className="bg-gray-800 text-left">
+                  <th className="p-3 border-b border-gray-700">{pageCopy.table_h_asset}</th>
+                  <th className="p-3 border-b border-gray-700">{pageCopy.table_h_type}</th>
+                  <th className="p-3 border-b border-gray-700">{pageCopy.table_h_quantity}</th>
+                  <th className="p-3 border-b border-gray-700">{pageCopy.table_h_price}</th>
+                  <th className="p-3 border-b border-gray-700">{pageCopy.table_h_total}</th>
                 </tr>
-              })}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {tableData && tableData.map((asset: Asset, index: number) => {
+                  if ((index === tableData.length - 1) || (tableData[index + 1] !== null && tableData[index + 1].type !== asset.type)) {
+                    return <React.Fragment key={asset.type}>
+                      <tr className="border-b border-gray-700 hover:bg-gray-800">
+                        <td className="p-3">{asset.label}</td>
+                        <td className="p-3">{asset.type}</td>
+                        <td className="p-3">{asset.quantity}</td>
+                        <td className="p-3">{asset.price}</td>
+                        <td className="p-3">{(asset.quantity * asset.price).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
+                      </tr>
+                      <tr className="bg-gray-900 text-gray-300 font-semibold">
+                        <td colSpan={4} className="p-3 border-t border-gray-700">{pageCopy.total} {asset.type}</td>
+                        <td className="p-3 border-t border-gray-700">{(tableData.reduce((acc: number, a: Asset) => a.type === asset.type ? acc + a.quantity * a.price : acc, 0)).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
+                      </tr>
+                      {selectedType === ALL_TYPES && index === tableData.length - 1 && <>
+                        <tr className="bg-gray-900 text-gray-300 font-bold">
+                          <td colSpan={4} className="p-3 border-t border-gray-700">{pageCopy.total_all_assets}</td>
+                          <td className="p-3 border-t border-gray-700">{tableData.reduce((acc: number, a: Asset) => acc + a.quantity * a.price, 0).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
+                        </tr>
+                      </>}
+                    </React.Fragment>
+                  }
+
+                  return <tr key={asset.label} className="border-b border-gray-700 hover:bg-gray-800">
+                    <td className="p-3">{asset.label}</td>
+                    <td className="p-3">{asset.type}</td>
+                    <td className="p-3">{asset.quantity}</td>
+                    <td className="p-3">{asset.price}</td>
+                    <td className="p-3">{(asset.quantity * asset.price).toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
+                  </tr>
+                })}
+              </tbody>
+            </table>)
+            : <LoadingSpinner />}
         </div>
 
         {/*
@@ -333,7 +270,7 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
         */}
         <h2 className="w-full text-lg text-gray-200 font-semibold leading-6 text-center border-b border-gray-600 pb-2">❸ Portfolio Through Time</h2>
         <div className="w-full max-w-[600px] mb-10">
-          {lineData && <Line options={lineData.options} data={lineData.data} />}
+          {lineData ? <Line data={lineData} /> : <LoadingSpinner />}
         </div>
 
       </div>
@@ -341,14 +278,17 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
   );
 }
 
+export function HydrateFallback() {
+  return <LoadingSpinner />
+}
+
+function LoadingSpinner() {
+  return <div className="flex flex-col items-center"><div className="loader"></div></div>;
+}
 
 export function meta({ }: Route.MetaArgs) {
   return [
     { title: "Vega Frontend Coding Task" },
     { name: "description", content: "This is the dashboard" },
   ];
-}
-
-export function HydrateFallback() {
-  return <p>Loading...</p>;
 }
