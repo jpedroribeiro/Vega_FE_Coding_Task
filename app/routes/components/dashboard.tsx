@@ -160,7 +160,7 @@ export default function DashboardComponent({ loaderData }: { loaderData: { email
                     </nav>
                 </div>
                 <div className="w-full flex gap-4 justify-between">
-                    <select className="flex-1 basis-1/2 p-2 pl-0 sm:pl-4 rounded-md border border-gray-700"
+                    <select className="flex-1 basis-1/2 p-2 pl-2 sm:pl-4 rounded-md border border-gray-700"
                         onChange={handleDonutDataChange}
                     >
                         <optgroup label={pageCopy.all_assets}>
@@ -175,7 +175,7 @@ export default function DashboardComponent({ loaderData }: { loaderData: { email
                         </optgroup>
                     </select>
 
-                    <select className="flex-1 basis-1/2 p-2 pl-0 sm:pl-4 rounded-md border border-gray-700"
+                    <select className="flex-1 basis-1/2 p-2 pl-2 sm:pl-4 rounded-md border border-gray-700"
                         onChange={handleDateChange}
                     >
                         {[...new Set(assetData.donutAndHistoricalData
