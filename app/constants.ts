@@ -34,6 +34,7 @@ export const pageCopy = {
     table_h_total: 'Total (USD$)',
     total: 'Total',
     total_all_assets: 'Total (USD$)',
+    error_api: 'Error fetching data. Please try again later.'
 }
 
 export const homeCopy = {

@@ -4,10 +4,7 @@ import type { Route } from "./+types/assets";
 
 export async function loader({ params }: Route.LoaderArgs) {
     console.log(params);
-
-
     return { donutAndHistoricalData };
-
 }
 
 export interface Asset {
@@ -18,7 +15,7 @@ export interface Asset {
     date: string;
 }
 
-const donutAndHistoricalData = [
+const donutAndHistoricalData: Asset[] = [
     { label: "GBP", quantity: 1905, price: 1.1, type: "fiat", date: "2024-03-01" },
     { label: "GBP", quantity: 3321, price: 1.1, type: "fiat", date: "2024-04-01" },
     { label: "GBP", quantity: 5123, price: 1.1, type: "fiat", date: "2024-05-01" },

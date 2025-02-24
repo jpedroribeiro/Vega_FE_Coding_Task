@@ -38,15 +38,23 @@ export async function clientLoader({ params }: any) {
   }
 
   // DONUT DATA: fetch data from /assets
-  const assetResponse = await fetch("/assets");
-  const assetData = await assetResponse.json();
-
-  return { email, visits, assetData };
+  let assetResponse: Response;
+  try {
+    assetResponse = await fetch("/assets");
+    const assetData = await assetResponse.json();
+    return { email, visits, assetData };
+  } catch {
+    return { error: pageCopy.error_api };
+  }
 }
 
-export default function DashboardRoute({ loaderData }: { loaderData: { email: string, visits: string, assetData: { donutAndHistoricalData: Asset[] } } }) {
+export default function DashboardRoute({ loaderData }: { loaderData: { email: string, visits: string, assetData: { donutAndHistoricalData: Asset[] }, error: string } }) {
   // API data
-  const { email, visits, assetData } = loaderData;
+  const { email, visits, assetData, error } = loaderData;
+
+  if (error) {
+    return <div className="flex flex-col items-center p-16">{error}</div>
+  }
 
   // App state
   const [selectedType, setSelectedType] = React.useState<string>(ALL_TYPES);
