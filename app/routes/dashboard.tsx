@@ -1,6 +1,7 @@
 import React from "react";
 import type { Route } from "./+types/home";
 import logo from "/public/logo.jpg";
+import LoadingSpinner from "../loading_spinner";
 import {
   Chart as ChartJS, ArcElement, Tooltip, Legend,
   CategoryScale,
@@ -280,10 +281,6 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
 
 export function HydrateFallback() {
   return <LoadingSpinner />
-}
-
-function LoadingSpinner() {
-  return <div className="flex flex-col items-center"><div className="loader"></div></div>;
 }
 
 export function meta({ }: Route.MetaArgs) {
