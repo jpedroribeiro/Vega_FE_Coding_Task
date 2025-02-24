@@ -53,7 +53,7 @@ export async function clientLoader({
 
 
   // CREDENTIALS: load email and visits from localStorage
-  const credentials = localStorage.getItem("credentials");
+  const credentials: string | null = localStorage.getItem("credentials");
   let email: string | undefined;
   let visits: string | undefined;
   if (credentials) {
@@ -72,33 +72,41 @@ export async function clientLoader({
 }
 
 export default function DashboardRoute({ loaderData }: { loaderData: { email: string, visits: string, assetData: { donut: Asset[], donutAndHistoricalData: Asset[] } } }) {
+  // Hardcoded constants
   const ALL_TYPES = "all-assets";
   const COLOURS = {
     backgroundColor: [
-      'rgba(0, 51, 153, 0.92)',   // Dark Royal Blue  
-      'rgba(0, 102, 204, 0.92)',  // Bright Corporate Blue  
-      'rgba(0, 153, 255, 0.92)',  // Vivid Azure  
-      'rgba(30, 144, 255, 0.92)', // Dodger Blue  
-      'rgba(70, 130, 180, 0.92)', // Steel Blue  
-      'rgba(173, 216, 230, 0.92)', // Light Blue  
+      'rgba(0, 51, 153, 0.92)',
+      'rgba(0, 102, 204, 0.92)',
+      'rgba(0, 153, 255, 0.92)',
+      'rgba(30, 144, 255, 0.92)',
+      'rgba(70, 130, 180, 0.92)',
+      'rgba(173, 216, 230, 0.92)',
     ],
     borderColor: [
-      'rgba(100, 149, 237, 1)',  // Lighter Cornflower Blue  
-      'rgba(135, 206, 250, 1)',  // Lighter Sky Blue  
-      'rgba(173, 216, 230, 1)',  // Light Blue  
-      'rgba(176, 224, 230, 1)',  // Powder Blue  
-      'rgba(202, 225, 255, 1)',  // Soft Baby Blue  
-      'rgba(224, 240, 255, 1)',  // Very Light Blue  
+      'rgba(100, 149, 237, 1)',
+      'rgba(135, 206, 250, 1)',
+      'rgba(173, 216, 230, 1)',
+      'rgba(176, 224, 230, 1)',
+      'rgba(202, 225, 255, 1)',
+      'rgba(224, 240, 255, 1)',
     ],
   }
+
+  // API data
   const { email, visits, assetData } = loaderData;
+
+  // App state
   const [selectedType, setSelectedType] = React.useState<string>(ALL_TYPES);
   const [selectedDate, setSelectedDate] = React.useState<string>(assetData.donutAndHistoricalData.sort((a: Asset, b: Asset) => new Date(b.date).getTime() - new Date(a.date).getTime())[0].date);
+
+  // Dashboard data
   const [donutData, setDonutData] = React.useState<DonutChartData | null>(null);
   const availableAssetsTypes: string[] = [... new Set<string>(assetData.donut.map((asset: Asset) => asset.type))];
   const [tableData, setTableData] = React.useState<any[]>([]);
   const [lineData, setLineData] = React.useState<any>(null);
 
+  // Select box change functions
   function handleDonutDataChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const assetLabel = event.target.value;
     setSelectedType(assetLabel);
@@ -109,6 +117,7 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
     setSelectedDate(date);
   }
 
+  // Charts & table data transformations
   function updateDonutData() {
     // Donut#1 - All assets by type
     const donut_1: Record<string, number> = {};
@@ -200,13 +209,10 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
       ],
     };
 
-
     setLineData({
       options,
       data
-    })
-
-
+    });
   }
 
   React.useEffect(() => {
