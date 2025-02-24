@@ -9,6 +9,7 @@ import {
   LineElement,
 } from 'chart.js';
 import { Doughnut, Line } from 'react-chartjs-2';
+import type { Credentials } from "./home";
 
 interface Asset {
   label: string;
@@ -44,16 +45,23 @@ export async function clientLoader({
 }: any) {
   /* 
     TODO
-      - credentials and API with more data?
       - filtering date and type could be optimised
       - more types (charts etc)
+      - API with more data?
   
   */
 
 
   // CREDENTIALS: load email and visits from localStorage
-  const email = localStorage.getItem("email");
-  const visits = localStorage.getItem("visits");
+  const credentials = localStorage.getItem("credentials");
+  let email: string | undefined;
+  let visits: string | undefined;
+  if (credentials) {
+    const credentialsParsed: Credentials[] = JSON.parse(credentials);
+    const thisUser = credentialsParsed.find((credential) => credential.active);
+    email = thisUser?.email[0];
+    visits = thisUser?.visits.toString();
+  }
 
 
   // DONUT DATA: fetch data from /assets
@@ -67,20 +75,20 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
   const ALL_TYPES = "all-assets";
   const COLOURS = {
     backgroundColor: [
-      'rgba(255, 99, 132, 0.92)',
-      'rgba(54, 162, 235, 0.92)',
-      'rgba(255, 206, 86, 0.92)',
-      'rgba(75, 192, 192, 0.92)',
-      'rgba(153, 102, 255, 0.92)',
-      'rgba(255, 159, 64, 0.92)',
+      'rgba(0, 51, 153, 0.92)',   // Dark Royal Blue  
+      'rgba(0, 102, 204, 0.92)',  // Bright Corporate Blue  
+      'rgba(0, 153, 255, 0.92)',  // Vivid Azure  
+      'rgba(30, 144, 255, 0.92)', // Dodger Blue  
+      'rgba(70, 130, 180, 0.92)', // Steel Blue  
+      'rgba(173, 216, 230, 0.92)', // Light Blue  
     ],
     borderColor: [
-      'rgba(255, 99, 132, 1)',
-      'rgba(54, 162, 235, 1)',
-      'rgba(255, 206, 86, 1)',
-      'rgba(75, 192, 192, 1)',
-      'rgba(153, 102, 255, 1)',
-      'rgba(255, 159, 64, 1)',
+      'rgba(100, 149, 237, 1)',  // Lighter Cornflower Blue  
+      'rgba(135, 206, 250, 1)',  // Lighter Sky Blue  
+      'rgba(173, 216, 230, 1)',  // Light Blue  
+      'rgba(176, 224, 230, 1)',  // Powder Blue  
+      'rgba(202, 225, 255, 1)',  // Soft Baby Blue  
+      'rgba(224, 240, 255, 1)',  // Very Light Blue  
     ],
   }
   const { email, visits, assetData } = loaderData;
@@ -185,7 +193,7 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
           return {
             label,
             data: Object.values(entryData),
-            borderColor: COLOURS.borderColor[index % COLOURS.borderColor.length],
+            borderColor: COLOURS.backgroundColor[index % COLOURS.backgroundColor.length],
             backgroundColor: COLOURS.backgroundColor[index % COLOURS.backgroundColor.length],
           }
         }),
@@ -221,8 +229,8 @@ export default function DashboardRoute({ loaderData }: { loaderData: { email: st
         </header>
         <div className="space-y-6 px-4">
           <nav className="space-y-4">
-            <p className="leading-6 text-gray-200 text-center pb-2 text-sm">
-              Welcome back, {email || "TODO"}, you have visited the dashboard {visits || "TODO"} times.
+            <p className="leading-6 text-gray-200 text-center pb-2 text-sm mb-4">
+              Welcome back, <b>{email}</b>, you have visited the dashboard <b>{visits || 1}</b> time{parseInt(visits) === 1 ? '' : 's'}.
             </p>
           </nav>
         </div>
